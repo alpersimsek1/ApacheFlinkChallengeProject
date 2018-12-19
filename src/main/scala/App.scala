@@ -8,11 +8,11 @@ case class ProductCount(productId: String, count: Int)
 object App {
 
   def main(args: Array[String]): Unit = {
-    val inputSourceDirectorty = "sample.csv"
+    val inputPath = "sample.csv"
 
     val env = ExecutionEnvironment.getExecutionEnvironment
 
-    val eventsCSV = env.readTextFile(inputSourceDirectorty)
+    val eventsCSV = env.readTextFile(inputPath)
 
     val dataset = eventsCSV.map {
       row =>
@@ -21,7 +21,7 @@ object App {
     }
 
     val eventFilter = dataset.filter(data => data.eventName == "view")
-    val groupedView = uniqueViewCounts(dataset) // eventFilter
+    val groupedView = uniqueViewCounts(eventFilter) // dataset
     val uniqueEvents = uniqueEventCounts(dataset)
     val allEventsOfUser47 = uniqueEventCounts(dataset.filter(_.userId == "47"))
 
@@ -42,32 +42,22 @@ object App {
     println("........")
     allEventsOfUser47.print()
     println("........")
-    dataset.filter(_.userId == "47").print()
-    println("........")
     user47.print()
     println("........")
     userCounts.print()
-    println("........")
-    userAndEvents.filter(data => data._1 == "4").print()
+
   }
 
-  def uniqueViewCounts(dataset: DataSet[Data]): DataSet[ProductCount] = {
-    dataset.groupBy(_.productId).reduceGroup {
-      (subDataset, b: Collector[ProductCount]) =>
-        var key: String = null
-        var count = 0
-
-        for (data <- subDataset) {
-          key = data.productId
-          count += 1
-        }
-        b.collect(ProductCount(key, count))
-    }
+  def uniqueViewCounts(dataset: DataSet[Data]): AggregateDataSet[(String, Int)] = {
+    dataset.map{
+      data =>
+        (data.productId,1)
+    }.groupBy(0).sum(1)
   }
 
   def uniqueEventCounts(dataset: DataSet[Data]): DataSet[(String, Int)] = {
     dataset.groupBy(_.eventName).reduceGroup {
-      (subDataset, b: Collector[(String, Int)]) =>
+      (subDataset, collector: Collector[(String, Int)]) =>
         var key: String = null
         var count = 0
 
@@ -75,7 +65,7 @@ object App {
           key = data.eventName
           count += 1
         }
-        b.collect((key, count))
+        collector.collect((key, count))
     }
   }
 
