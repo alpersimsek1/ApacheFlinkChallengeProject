@@ -7,7 +7,7 @@ scalaVersion := "2.11.12"
 val flinkVersion = "1.7.0"
 
 libraryDependencies ++=  Seq(
-  "org.apache.flink" %% "flink-scala" % flinkVersion ,//% "provided",
+  "org.apache.flink" %% "flink-scala" % flinkVersion, // % "provided",
   "org.apache.flink" %% "flink-streaming-scala" % flinkVersion //% "provided"
 )
 
