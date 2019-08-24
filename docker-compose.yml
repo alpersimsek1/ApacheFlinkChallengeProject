@@ -1,24 +1,17 @@
-version: "2.1"
+version: '3'
 services:
-  jobmanager:
-    image: ${FLINK_DOCKER_IMAGE_NAME:-flink}
-    expose:
-    - "6123"
-    ports:
-    - "8081:8081"
-    command: jobmanager
+  flink-master:
+   image: bde2020/flink-master:1.7.1-hadoop2.7
+   hostname: flink-master
+   container_name: flink-master
+   ports:
+     - "8080:8080"
+     - "8081:8081"
+  flink-worker:
+    image: bde2020/flink-worker:1.7.1-hadoop2.7
+    hostname: flink-worker
+    container_name: flink-worker
     environment:
-    - JOB_MANAGER_RPC_ADDRESS=jobmanager
-
-  taskmanager:
-    image: ${FLINK_DOCKER_IMAGE_NAME:-flink}
-    expose:
-    - "6121"
-    - "6122"
+      - FLINK_MASTER_PORT_6123_TCP_ADDR=flink-master
     depends_on:
-    - jobmanager
-    command: taskmanager
-    links:
-    - "jobmanager:jobmanager"
-    environment:
-    - JOB_MANAGER_RPC_ADDRESS=jobmanager
+        - flink-master
